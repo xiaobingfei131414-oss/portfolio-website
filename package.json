@@ -1,0 +1,23 @@
+{
+  "name": "3d-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4173 --strictPort --configLoader native",
+    "build": "tsc --noEmit && vite build --configLoader native && vite build --configLoader native --ssr src/entry-server.tsx --outDir .cache/ssr && node scripts/prerender.mjs && node test/build-contract.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort --configLoader native",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3"
+  }
+}
