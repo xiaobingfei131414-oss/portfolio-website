@@ -198,6 +198,10 @@ test('particle headline keeps the supplied typeface, size and white fallback tex
   assert.match(gradientHtml, /--particle-color-end:#ff9b58/);
   assert.ok(existsSync(new URL('../public/fonts/AlibabaPuHuiTi-Heavy-subset.woff2', import.meta.url)));
 });
+test('animated hero headline does not flash its static fallback before particles are ready', () => {
+  const css = readFileSync(new URL('../src/ParticleText.css', import.meta.url), 'utf8');
+  assert.match(css, /prefers-reduced-motion:no-preference[^}]*\.particle-heading \.particle-text__fallback\{opacity:0;visibility:hidden\}/);
+});
 test('visible copy removes decorative English and keeps a clear type hierarchy', () => {
   const pages = [render('/'), render('/works/visual/'), render('/project/product-animation-collection/'), render('/missing/')].join('\n');
   assert.doesNotMatch(pages, /DESIGNER \/ PORTFOLIO|PORTFOLIO \/ MENU|VISUAL THINKING|SELECTED WORKS|GOOD THINGS TAKE TIME|PAGE NOT FOUND|>ILLUSTRATION</);
