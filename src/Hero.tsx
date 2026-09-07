@@ -139,7 +139,7 @@ export function Hero() {
 
   return <>
     <div className="scene-backdrop" aria-hidden="true">
-      <video ref={video} className="scene-video" src={VIDEO_URL} muted playsInline preload="auto" tabIndex={-1}
+      <video ref={video} className="scene-video" src={VIDEO_URL} muted playsInline controlsList="nodownload" disablePictureInPicture preload="auto" tabIndex={-1}
         onLoadedData={() => setMediaState('ready')} onError={() => setMediaState('error')}
         onSeeked={() => {
           const media = video.current;

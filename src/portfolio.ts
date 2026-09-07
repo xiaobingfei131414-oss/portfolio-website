@@ -27,8 +27,8 @@ export function pagePaths() {
 }
 export function pageMetadata(pathname: string) {
   const page = resolvePage(pathname);
-  let title = `${profile.name} · 电商视觉设计师`;
-  let description = '电商视觉设计师个人作品集，涵盖 3D、视觉设计、摄影与插画。';
+  let title = `${profile.name} · ${profile.role}`;
+  let description = `${profile.role}个人作品集，涵盖 3D、视觉设计、摄影与插画。`;
   let image = '/og.png';
   if (page.kind === 'category') { title = `${page.subcategory?.name || page.category.name} · ${profile.name}`; description = page.category.description; }
   else if (page.kind === 'project') { title = `${page.project.title} · ${page.project.subtitle} · ${profile.name}`; description = page.project.description; image = page.project.cover; }

@@ -29,11 +29,11 @@ const waitForFonts = async font => {
 };
 
 const ParticleText = ({
-  text = 'React Bits', particleSize = 2, density = 4, color = '#ffffff',
+  text = 'React Bits', particleSize = 1.45, density = 2, color = '#ffffff',
   highlightColor = '#8b5cf6', scatter = 180, gatherDuration = 1600, stagger = 420,
   pointerRepel = 40, repelRadius = 120, idleDrift = 0.7, trigger = 'mount',
   fontSize = 'clamp(3rem, 12vw, 8rem)', fontWeight = 800, fontFamily = 'inherit',
-  glow = true, className = '', style = undefined,
+  glow = true, rainbow = false, letterSpacing = 0, lineHeight = 1.27, className = '', style = undefined,
 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
@@ -72,7 +72,6 @@ const ParticleText = ({
       if (disposed || !inView || document.hidden || reducedMotion) return;
       ctx.clearRect(0, 0, width, height);
       ctx.shadowBlur = glow ? particleSize * 3 : 0;
-      ctx.shadowColor = highlightColor;
       pointer.smoothX += (pointer.x - pointer.smoothX) * 0.18;
       pointer.smoothY += (pointer.y - pointer.smoothY) * 0.18;
       let complete = true;
@@ -101,6 +100,7 @@ const ParticleText = ({
         particle.y += (baseY - particle.y) * 0.22;
         ctx.globalAlpha = clamp(0.35 + progress * 0.65, 0, 1);
         ctx.fillStyle = particle.color;
+        if (glow) ctx.shadowColor = particle.color;
         if (particle.size <= 2.1) ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
         else { ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2); ctx.fill(); }
       });
@@ -134,16 +134,22 @@ const ParticleText = ({
       if (!offCtx) return;
       const lines = String(text || ' ').split('\n');
       offCtx.font = font;
-      const measuredWidth = Math.max(1, ...lines.map(line => offCtx.measureText(line).width));
-      size *= Math.min(1, (width - 16) / measuredWidth, (height - 18) / (lines.length * size * 1.27));
+      const measuredWidth = Math.max(1, ...lines.map(line => [...line].reduce((sum, char) => sum + offCtx.measureText(char).width, 0) + Math.max(0, [...line].length - 1) * size * letterSpacing));
+      size *= Math.min(1, (width - 16) / measuredWidth, (height - 18) / (lines.length * size * lineHeight));
       font = `${fontWeight} ${size}px ${family}`;
       await waitForFonts(font);
       if (disposed || currentBuild !== buildId) return;
       offscreen.width = width; offscreen.height = height;
       offCtx.font = font; offCtx.textAlign = 'left'; offCtx.textBaseline = 'alphabetic'; offCtx.fillStyle = '#fff';
-      const lineHeight = size * 1.27;
-      const top = (height - lines.length * lineHeight) / 2;
-      lines.forEach((line, index) => offCtx.fillText(line, 5, top + index * lineHeight + size));
+      const linePixels = size * lineHeight;
+      const top = (height - lines.length * linePixels) / 2;
+      lines.forEach((line, index) => {
+        let x = 5;
+        for (const char of line) {
+          offCtx.fillText(char, x, top + index * linePixels + size);
+          x += offCtx.measureText(char).width + size * letterSpacing;
+        }
+      });
       const data = offCtx.getImageData(0, 0, width, height).data;
       const targets = [], step = Math.max(2, Math.floor(density));
       for (let y = 0; y < height; y += step) {
@@ -153,17 +159,18 @@ const ParticleText = ({
         }
       }
       // Chinese strokes need a denser field than short Latin words.
-      const maxParticles = Math.max(1600, Math.min(5200, Math.floor(width * height / 35)));
+      const maxParticles = Math.max(3000, Math.min(12000, Math.floor(width * height / 12)));
       const stride = Math.max(1, Math.ceil(targets.length / maxParticles));
       const baseRgb = hexToRgb(color), highlightRgb = hexToRgb(highlightColor);
       particles = targets.filter((_, index) => index % stride === 0).map((target, index) => {
         const seed = ((index * 9301 + 49297) % 233280) / 233280;
         const depth = 0.45 + ((index * 233 + 97) % 1000) / 1000 * 0.9;
-        const blend = clamp(target.x / Math.max(1, width) + (seed - 0.5) * 0.35, 0, 1);
+        const blend = clamp(target.x / Math.max(1, width), 0, 1);
         const distance = scatter * (0.35 + depth * 0.75);
         const startX = target.x + Math.cos(seed * Math.PI * 2) * distance;
         const startY = target.y + Math.sin(seed * Math.PI * 2) * distance;
-        return { x: startX, y: startY, startX, startY, targetX: target.x, targetY: target.y, size: Math.max(0.6, particleSize * (0.75 + target.alpha * 0.45)), color: baseRgb && highlightRgb ? rgbToCss(mixRgb(baseRgb, highlightRgb, blend)) : color, seed, depth, delay: seed * stagger };
+        const hue = (190 + target.x / Math.max(1, width) * 230 + target.y / Math.max(1, height) * 65 + seed * 22) % 360;
+        return { x: startX, y: startY, startX, startY, targetX: target.x, targetY: target.y, size: Math.max(0.6, particleSize * (0.75 + target.alpha * 0.45)), color: rainbow ? `hsl(${hue} 100% 73%)` : baseRgb && highlightRgb ? rgbToCss(mixRgb(baseRgb, highlightRgb, blend)) : color, seed, depth, delay: seed * stagger };
       });
       pointer.x = pointer.smoothX = width / 2;
       pointer.y = pointer.smoothY = height / 2;
@@ -207,9 +214,10 @@ const ParticleText = ({
       canvas.removeEventListener('pointerleave', handlePointerLeave);
       canvas.removeEventListener('click', handleClick);
     };
-  }, [text, particleSize, density, color, highlightColor, scatter, gatherDuration, stagger, pointerRepel, repelRadius, idleDrift, trigger, fontSize, fontWeight, fontFamily, glow]);
+  }, [text, particleSize, density, color, highlightColor, scatter, gatherDuration, stagger, pointerRepel, repelRadius, idleDrift, trigger, fontSize, fontWeight, fontFamily, glow, rainbow, letterSpacing, lineHeight]);
 
-  return <span ref={containerRef} className={`particle-text ${className}`} style={{ fontSize, fontWeight, fontFamily, color, ...style }}>
+  const hasGradient = !rainbow && color !== highlightColor;
+  return <span ref={containerRef} className={`particle-text ${rainbow ? 'particle-text--rainbow' : ''} ${hasGradient ? 'particle-text--gradient' : ''} ${className}`} style={{ '--particle-color-start': color, '--particle-color-end': highlightColor, fontSize, fontWeight, fontFamily, color, letterSpacing: `${letterSpacing}em`, lineHeight, ...style }}>
     <canvas ref={canvasRef} className="particle-text__canvas" aria-hidden="true" />
     <span className="particle-text__fallback" aria-hidden="true">{text}</span>
     <span className="particle-text__sr">{text}</span>

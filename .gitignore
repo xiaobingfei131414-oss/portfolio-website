@@ -4,3 +4,6 @@ dist/
 .cache/
 .pnpm-store/
 artifacts/
+backups/
+tmp/
+.preview-*.log

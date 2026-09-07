@@ -1,0 +1,2 @@
+.glow-cursor__canvas{position:fixed;inset:0;display:block;width:100%;height:100%;z-index:40;pointer-events:none;user-select:none;opacity:0}
+@media(prefers-reduced-motion:reduce),(any-pointer:coarse) and (not (any-pointer:fine)){.glow-cursor__canvas{display:none}}

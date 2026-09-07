@@ -1,0 +1,5 @@
+.scroll-reveal{margin:0;transform-origin:0 50%}
+.scroll-reveal-text{margin:0}
+.scroll-reveal-unit{display:inline-block}
+.scroll-reveal-fallback .scroll-reveal-unit{opacity:1!important;filter:none!important}
+@media(prefers-reduced-motion:reduce){.scroll-reveal{transform:none!important}.scroll-reveal-unit{opacity:1!important;filter:none!important}}
