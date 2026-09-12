@@ -14,7 +14,7 @@ function GalleryItem({ media, onOpen }: { media: Media; onOpen: () => void }) {
     ? media.width / media.height > 1.2 ? 'landscape' : media.height / media.width > 1.2 ? 'portrait' : 'square'
     : 'standard';
   if (media.kind === 'video') return <figure className="media-item">
-    {!failed ? <video controls controlsList="nodownload" disablePictureInPicture playsInline preload="metadata" poster={media.poster} src={media.src} aria-label={media.alt} onError={() => setFailed(true)} /> : <div className="video-fallback">{media.poster && <SafeImage src={media.poster} alt={media.alt} />}<p role="status">视频暂时无法播放，请稍后重试。你仍可继续浏览其他作品。</p><button className="text-link interface-button" type="button" onClick={() => setFailed(false)}>重新加载</button></div>}
+    {!failed ? <video controls controlsList="nodownload" disablePictureInPicture playsInline preload="none" poster={media.poster} src={media.src} aria-label={media.alt} onError={() => setFailed(true)} /> : <div className="video-fallback">{media.poster && <SafeImage src={media.poster} alt={media.alt} />}<p role="status">视频暂时无法播放，请稍后重试。你仍可继续浏览其他作品。</p><button className="text-link interface-button" type="button" onClick={() => setFailed(false)}>重新加载</button></div>}
     {media.caption && <figcaption>{media.caption}</figcaption>}
   </figure>;
   return <figure className={`media-item media-item--${orientation}`}><button className="image-open" type="button" onClick={onOpen} aria-label={`放大查看：${media.alt}`} disabled={failed}>

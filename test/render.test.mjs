@@ -74,8 +74,10 @@ test('product animation category publishes every supplied compressed video inlin
   const project = render('/project/product-animation-collection/');
   assert.match(category, /16 件作品/);
   assert.equal([...category.matchAll(/<video/g)].length, 16);
+  assert.equal([...category.matchAll(/preload="none"/g)].length, 16);
   assert.doesNotMatch(category, /示例作品|作品整理中/);
   assert.match(project, /产品动画作品集/);
+  assert.equal([...project.matchAll(/preload="none"/g)].length, 16);
   for (let i = 1; i <= 16; i++) {
     const number = String(i).padStart(2, '0');
     const source = `/videos/product-animation/animation-${number}.mp4`;
