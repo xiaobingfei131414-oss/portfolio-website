@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 let server, App;
 before(async () => {
   server = await createServer({ configLoader: 'native', server: { middlewareMode: true }, appType: 'custom', optimizeDeps: { noDiscovery: true, include: [] } });
@@ -11,6 +12,15 @@ before(async () => {
 });
 after(async () => { await server?.close(); });
 const render = path => renderToStaticMarkup(createElement(App, { pathname: path }));
+
+const assetBytes = directory => readdirSync(new URL(directory, import.meta.url), { recursive: true, withFileTypes: true })
+  .filter(entry => entry.isFile())
+  .reduce((total, entry) => total + statSync(join(entry.parentPath, entry.name)).size, 0);
+
+test('published portfolio media stays within the browsing performance budget', () => {
+  assert.ok(assetBytes('../public/images/') <= 55 * 1024 * 1024, 'published images must stay at or below 55 MB');
+  assert.ok(assetBytes('../public/videos/') <= 45 * 1024 * 1024, 'published videos must stay at or below 45 MB');
+});
 
 test('project URL renders its media and category return link without client JavaScript', () => {
   const html = render('/project/product-animation-collection/');
